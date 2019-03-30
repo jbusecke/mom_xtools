@@ -1,0 +1,7 @@
+[report]
+omit =
+    setup.py
+    mom_xtools/__main__.py
+    mom_xtools/_version.py
+    versioneer.py
+    tests/*

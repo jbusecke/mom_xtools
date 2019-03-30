@@ -1,0 +1,8 @@
+---
+exclude_paths:
+  - 'mom_xtools/_version.py'
+  - 'tests/**/*'
+  - 'tests/*'
+  - 'benchmarks/**/*'
+  - 'setup.py'
+  - 'versioneer.py'
