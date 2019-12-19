@@ -114,7 +114,7 @@ def add_split_tendencies(ds, grid=None):
 def add_vertical_spacing(ds, grid=None):
     if grid is None:
         warnings.warn('No input grid provided. Trying to build grid from `ds`. This will not work if `ds` does not have grid information encoded in attributes.')
-        grid = Grid(ds
+        grid = Grid(ds)
 
     ds.coords["dst"] = calculate_ds(ds, dim="st")
     ds.coords["dswt"] = calculate_ds(ds, dim="sw")
@@ -136,7 +136,7 @@ def split_adv_budget(ds, grid=None):
     if "o2_xflux_adv" in list(ds.data_vars):
         if grid is None:
             warnings.warn('No input grid provided. Trying to build grid from `ds`. This will not work if `ds` does not have grid information encoded in attributes.')
-            grid = Grid(ds
+            grid = Grid(ds)
         area = ds.area_t
         div_x = -grid.diff(ds.o2_xflux_adv, "X", boundary="fill") / area
         div_y = -grid.diff(ds.o2_yflux_adv, "Y", boundary="fill") / area
