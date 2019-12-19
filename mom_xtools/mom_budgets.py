@@ -3,15 +3,18 @@ import xarray as xr
 from xgcm import Grid
 import numpy as np
 import os
+import warnings
 
 # from xarrayutils.cm26_codebucket import drop_all_coords
 
 # I think this should go to the EUC-shape processing, since it is quite specialized
-def add_split_tendencies(ds):
+def add_split_tendencies(ds, grid=None):
     """Reconstructs various fluxes and tendencies (x-y_x) from the monthly averaged output. Hardcoded to o2 atm."""
     ds = ds.copy()
     rho = 1035  # reference density
-    grid = Grid(ds)
+    if grid is None:
+        warnings.warn('No input grid provided. Trying to build grid from `ds`. This will not work if `ds` does not have grid information encoded in attributes.')
+        grid = Grid(ds)
 
     # This should be calculated upstream (see: add_vertical_spacing), it is possibly totally wrong
     if "dzwt" not in ds.coords:
@@ -108,8 +111,11 @@ def add_split_tendencies(ds):
 ################# more high level convenience functions
 
 
-def add_vertical_spacing(ds):
-    grid = Grid(ds)
+def add_vertical_spacing(ds, grid=None):
+    if grid is None:
+        warnings.warn('No input grid provided. Trying to build grid from `ds`. This will not work if `ds` does not have grid information encoded in attributes.')
+        grid = Grid(ds)
+
     ds.coords["dst"] = calculate_ds(ds, dim="st")
     ds.coords["dswt"] = calculate_ds(ds, dim="sw")
     ds.coords["dzt"] = calculate_dz(ds["eta_t"], ds["ht"], ds["dst"])
@@ -124,11 +130,13 @@ def add_vertical_spacing(ds):
     return ds
 
 
-def split_adv_budget(ds):
+def split_adv_budget(ds, grid=None):
     print("I think this is outdated....")
     ds = ds.copy()
     if "o2_xflux_adv" in list(ds.data_vars):
-        grid = Grid(ds)
+        if grid is None:
+            warnings.warn('No input grid provided. Trying to build grid from `ds`. This will not work if `ds` does not have grid information encoded in attributes.')
+            grid = Grid(ds)
         area = ds.area_t
         div_x = -grid.diff(ds.o2_xflux_adv, "X", boundary="fill") / area
         div_y = -grid.diff(ds.o2_yflux_adv, "Y", boundary="fill") / area
