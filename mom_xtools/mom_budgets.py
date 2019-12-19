@@ -111,7 +111,7 @@ def add_split_tendencies(ds, grid=None):
 ################# more high level convenience functions
 
 
-def add_vertical_spacing(ds, grid=None):
+def add_vertical_spacing(ds, grid=None, boundary={'X':None ,'Y':'extend'}):
     if grid is None:
         warnings.warn('No input grid provided. Trying to build grid from `ds`. This will not work if `ds` does not have grid information encoded in attributes.')
         grid = Grid(ds)
@@ -119,13 +119,11 @@ def add_vertical_spacing(ds, grid=None):
     ds.coords["dst"] = calculate_ds(ds, dim="st")
     ds.coords["dswt"] = calculate_ds(ds, dim="sw")
     ds.coords["dzt"] = calculate_dz(ds["eta_t"], ds["ht"], ds["dst"])
-    ds.coords["dzu"] = grid.min(grid.min(ds["dzt"], "X"), "Y")
+    ds.coords["dzu"] = grid.min(
+        grid.min(ds["dzt"],"X",boundary=boundary['X']),
+            "Y", boundary=boundary['Y'])
     #     # Avoids suspected computation midway during the dask graph creation...Should probably raise an xarray issue about this.
-    #     ds['dzt'] = calculate_dz(ds['eta_t'], ds['ht'], ds['dst'])
-    #     ds['dzu'] = grid.min(grid.min(ds['dzt'], 'X'),'Y')
-    #     # Lets try this as a workaround...
-    #     for vv in ['dzt', 'dzu']:
-    #         ds.coords[vv] = ds[vv]
+
     # the dzwt value is dependent on the model version (finite vol vs. engergetically consistent?; See MOM5 manual section 10.4.2)
     return ds
 
@@ -194,6 +192,13 @@ def calculate_dzstar(ds, dim="st"):
     print("Outdated function. Use `calculate_ds` instead")
     return calculate_ds(ds, dim=dim)
 
+def calculate_zstar(eta, h, s):
+    """reconstructs cell depth z_star(x,y,z,t) from sea surface elevation ('eta') and the full ocean depth ('h')
+    and fixed thickness levels (ds)."""
+    # IMPORTANT z is negative in the ocean!
+    #     zstar = h * ((-s-eta)/(h+eta))
+    zstar = h * ((s - eta) / (h + eta))
+    return zstar
 
 def calculate_ds(ds, dim="st", partial_bottom=True):
     """Creates static thickness (ds) for MOM5 tracer cells ()."""
@@ -343,22 +348,6 @@ def t_cell_tendency(uflux, vflux, wflux, tracer, grid):
         uflux, vflux, wflux, tracer, grid
     )
     return u_tendency + v_tendency, w_tendency
-
-
-# Not needed anymore since grid.min is implemented in xgcm
-# def grid_shift(da, axis, grid, boundary='extend'):
-#     ref = grid.interp(da, axis, boundary=boundary)
-#     return xr.DataArray(da.data, coords=ref.coords, dims=ref.coords)
-
-# # Reconstruct dzu (minimum of sourrounding grid cells)
-# def min_at_u(t_array, xdim='xt_ocean', ydim='yt_ocean'):
-#     ll = t_array
-#     lr = t_array.roll(**{xdim:-1})
-#     ul = t_array.roll(**{ydim:-1})
-#     ur = t_array.roll(**{xdim:-1, ydim:-1})
-#     u_min = xr.ufuncs.minimum(ul,ur)
-#     l_min = xr.ufuncs.minimum(ll,lr)
-#     return xr.ufuncs.minimum(u_min, l_min)
 
 
 def remap_u_2_et(u, grid, boundary="extend"):
