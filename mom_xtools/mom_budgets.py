@@ -192,12 +192,9 @@ def calculate_dzstar(ds, dim="st"):
     print("Outdated function. Use `calculate_ds` instead")
     return calculate_ds(ds, dim=dim)
 
-def calculate_zstar(eta, h, s):
+def calculate_zstar(eta, h, z):
     """reconstructs cell depth z_star(x,y,z,t) from sea surface elevation ('eta') and the full ocean depth ('h')
     and fixed depth levels (z)."""
-    # TODO: Check if s should be z here?
-    # IMPORTANT z is negative in the ocean!
-    #     zstar = h * ((-s-eta)/(h+eta))
     if all(z>=0):
         z = -z
         positive_depth=True
