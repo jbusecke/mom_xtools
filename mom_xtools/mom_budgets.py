@@ -194,10 +194,23 @@ def calculate_dzstar(ds, dim="st"):
 
 def calculate_zstar(eta, h, s):
     """reconstructs cell depth z_star(x,y,z,t) from sea surface elevation ('eta') and the full ocean depth ('h')
-    and fixed thickness levels (ds)."""
+    and fixed depth levels (z)."""
+    # TODO: Check if s should be z here?
     # IMPORTANT z is negative in the ocean!
     #     zstar = h * ((-s-eta)/(h+eta))
-    zstar = h * ((s - eta) / (h + eta))
+    if all(z>=0):
+        z = -z
+        positive_depth=True
+    else:
+        positive_depth=False
+
+    h = abs(h)
+
+    zstar = h * (z - eta) / (h + eta)
+
+    if positive_depth:
+        zstar = -zstar
+
     return zstar
 
 def calculate_ds(ds, dim="st", partial_bottom=True):
